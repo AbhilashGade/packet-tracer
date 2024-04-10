@@ -1,0 +1,2 @@
+[workspace]
+members = ["xtask", "packet-tracer", "packet-tracer-common"]

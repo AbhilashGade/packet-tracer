@@ -18,7 +18,8 @@ mkShell rec {
       openssl
       pkg-config
       prometheus
-      bpftool
+      bpftool # bcc-tools is a collection of tools for BPF programs
+      bcc-tools
 
     ];
 

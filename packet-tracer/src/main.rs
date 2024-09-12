@@ -5,6 +5,9 @@ use aya_log::EbpfLogger;
 use clap::Parser;
 use log::{info, warn, debug};
 use tokio::signal;
+use aya::{include_bytes_aligned, Bpf};
+use aya::maps::HashMap;
+use packet_tracer_common::PacketRule;
 
 #[derive(Debug, Parser)]
 struct Opt {
@@ -55,4 +58,20 @@ async fn main() -> Result<(), anyhow::Error> {
     info!("Exiting...");
 
     Ok(())
+}
+
+fn main() {
+    // Load the eBPF program
+    let mut bpf = Bpf::load(include_bytes_aligned!(
+        "../../target/bpfel-unknown-none/release/packet-tracer"
+    )).unwrap();
+
+    // Get a reference to the RULES map
+    let rules: &mut HashMap<_, _, u32, PacketRule> = unsafe { bpf.map_mut("RULES").unwrap() };
+
+    let rule = PacketRule { drop: true };
+    let ip_address: u32 = "192.168.0.1".parse().unwrap();
+    rules.insert(ip_address, rule, 0).unwrap();
+
+    // ...
 }

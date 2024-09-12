@@ -1,8 +1,17 @@
 #![no_std]
 #![no_main]
 
-use aya_ebpf::{bindings::xdp_action, macros::xdp, programs::XdpContext};
+use aya_bpf::{
+    bindings::xdp_action,
+    macros::{map, xdp},
+    maps::HashMap,
+    programs::XdpContext,
+};
 use aya_log_ebpf::info;
+use packet_tracer_common::PacketRule;
+
+#[map]
+static mut RULES: HashMap<u32, PacketRule> = HashMap::with_max_entries(1024, 0);
 
 #[xdp]
 pub fn packet_tracer(ctx: XdpContext) -> u32 {
@@ -13,7 +22,15 @@ pub fn packet_tracer(ctx: XdpContext) -> u32 {
 }
 
 fn try_packet_tracer(ctx: XdpContext) -> Result<u32, u32> {
-    info!(&ctx, "received a packet");
+    let ip = ctx.ip()?;
+
+    if let Some(rule) = unsafe { RULES.get(&ip.saddr.into()) } {
+        if rule.drop {
+            info!(&ctx, "dropping packet from {}", ip.saddr);
+            return Ok(xdp_action::XDP_DROP);
+        }
+    }
+
     Ok(xdp_action::XDP_PASS)
 }
 

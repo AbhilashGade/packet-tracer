@@ -2,13 +2,16 @@
 name = "packet-tracer-common"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 [features]
 default = []
+# Enabled only by the userspace crate. The eBPF crate must not pull in `aya`,
+# which is a std crate and will not build for bpfel-unknown-none.
 user = ["aya"]
 
 [dependencies]
-aya = { git = "https://github.com/aya-rs/aya", optional = true }
+aya = { version = "0.14", optional = true }
 
 [lib]
 path = "src/lib.rs"

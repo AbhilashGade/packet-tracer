@@ -2,16 +2,22 @@
 name = "packet-tracer-ebpf"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
+# Pinned to released versions rather than tracking the aya git HEAD. The two
+# are not interchangeable: `aya::Bpf` was renamed to `aya::Ebpf` in 0.13, so a
+# floating git dependency silently breaks the loader on every upstream rename.
 [dependencies]
-aya-ebpf = { git = "https://github.com/aya-rs/aya" }
-aya-log-ebpf = { git = "https://github.com/aya-rs/aya" }
+aya-ebpf = "0.2.1"
 packet-tracer-common = { path = "../packet-tracer-common" }
 
 [[bin]]
 name = "packet-tracer"
 path = "src/main.rs"
 
+# `opt-level = 3` even in dev: the verifier rejects unoptimized BPF. Debug
+# builds leave the bounded VLAN loop rolled and spill more to the 512-byte BPF
+# stack than the limit allows.
 [profile.dev]
 opt-level = 3
 debug = false
@@ -28,5 +34,8 @@ lto = true
 panic = "abort"
 codegen-units = 1
 
+# Its own workspace: this crate builds for bpfel-unknown-none with a nightly
+# toolchain and -Z build-std, which cannot share a lockfile or profile set with
+# the host-target userspace crates.
 [workspace]
 members = []

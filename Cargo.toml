@@ -1,5 +1,2 @@
 [workspace]
-# The ebpf crate is deliberately absent: it targets bpfel-unknown-none with its
-# own nightly toolchain and is built via `cargo xtask build-ebpf`.
 members = ["xtask", "packet-tracer", "packet-tracer-common"]
-resolver = "2"
